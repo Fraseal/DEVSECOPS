@@ -14,7 +14,7 @@
 - Clone your application's code repository onto the EC2 instance:
     
     ```bash
-    git clone https://github.com/ashaik65/DevSecOps-Practical.git
+    git clone https://github.com/Fraseal/DEVSECOPS.git
     ```
     
 
@@ -195,8 +195,8 @@ Create a Jenkins webhook
 pipeline {
     agent any
     tools {
-        jdk 'jdk17'
-        nodejs 'node16'
+        jdk 'jdk21'
+        nodejs 'node20'
     }
     environment {
         SCANNER_HOME = tool 'sonar-scanner'
@@ -209,7 +209,7 @@ pipeline {
         }
         stage('Checkout from Git') {
             steps {
-                git branch: 'master', url: 'https://github.com/ashaik65/DevSecOps-Practical.git'
+                git branch: 'main', url: 'https://github.com/Fraseal/DEVSECOPS.git'
             }
         }
         stage("Sonarqube Analysis") {
