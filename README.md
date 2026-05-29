@@ -290,6 +290,7 @@ Now, you have installed the Dependency-Check plugin, configured the tool, and ad
 
 ```groovy
 
+
 pipeline{
     agent any
     tools{
@@ -332,8 +333,10 @@ pipeline{
         }
         stage('OWASP FS SCAN') {
             steps {
-                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
+                withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_KEY')]){
+                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit --nvdApiKey ${NVD_KEY}', odcInstallation: 'DP-Check'
                 dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+                }
             }
         }
         stage('TRIVY FS SCAN') {
@@ -345,7 +348,7 @@ pipeline{
             steps{
                 script{
                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
-                       sh "docker build --build-arg TMDB_V3_API_KEY=<yourapikey> -t netflix ."
+                       sh "docker build --build-arg TMDB_V3_API_KEY=db2216b9bfa78af7a6ac72246789eadc -t netflix ."
                        sh "docker tag netflix aj085/netflix:latest "
                        sh "docker push aj085/netflix:latest "
                     }
@@ -354,16 +357,19 @@ pipeline{
         }
         stage("TRIVY"){
             steps{
-                sh "trivy image ashaik65/netflix:latest > trivyimage.txt" 
+                sh "trivy image aj085/netflix:latest > trivyimage.txt" 
             }
         }
         stage('Deploy to container'){
             steps{
-                sh 'docker run -d --name netflix -p 8081:80 aj085/netflix:latest'
+                sh 'docker run -d  -p 8081:80 aj085/netflix:latest'
             }
         }
     }
 }
+
+
+
 
 
 If you get docker login failed errorr
