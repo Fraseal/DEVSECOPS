@@ -733,11 +733,12 @@ also do the testing and check whether this is working fine you can see like this
 ### For Post stage use this pipeline ###
 ```yaml
 
+
 pipeline{
     agent any
     tools{
-        jdk 'jdk17'
-        nodejs 'node16'
+        jdk 'jdk21'
+        nodejs 'node20'
     }
     environment {
         SCANNER_HOME=tool 'sonar-scanner'
@@ -750,7 +751,7 @@ pipeline{
         }
         stage('Checkout from Git'){
             steps{
-                git branch: 'master', url: 'https://github.com/ashaik65/DevSecOps-Practical.git'
+                git branch: 'main', url: 'https://github.com/Fraseal/DEVSECOPS.git'
             }
         }
         stage("Sonarqube Analysis "){
@@ -775,8 +776,10 @@ pipeline{
         }
         stage('OWASP FS SCAN') {
             steps {
-                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
+                withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_KEY')]){
+                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit --nvdApiKey ${NVD_KEY}', odcInstallation: 'DP-Check'
                 dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+                }
             }
         }
         stage('TRIVY FS SCAN') {
@@ -788,21 +791,21 @@ pipeline{
             steps{
                 script{
                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
-                       sh "docker build --build-arg TMDB_V3_API_KEY=<your key> -t netflix ."
-                       sh "docker tag netflix ashaik65/netflix:latest "
-                       sh "docker push ashaik65/netflix:latest "
+                       sh "docker build --build-arg TMDB_V3_API_KEY=db2216b9bfa78af7a6ac72246789eadc  -t netflix ."
+                       sh "docker tag netflix aj085/netflix:latest "
+                       sh "docker push aj085/netflix:latest "
                     }
                 }
             }
         }
         stage("TRIVY"){
             steps{
-                sh "trivy image ashaik65/netflix:latest > trivyimage.txt" 
+                sh "trivy image aj085/netflix:latest > trivyimage.txt" 
             }
         }
         stage('Deploy to container'){
             steps{
-                sh 'docker run -d  -p 8081:80 ashaik65/netflix:latest'
+                sh 'docker run -d  -p 8081:80 aj085/netflix:latest'
             }
         }
     }
@@ -815,12 +818,13 @@ pipeline{
               body: "Project: ${env.JOB_NAME}<br/>" +
                     "Build Number: ${env.BUILD_NUMBER}<br/>" +
                     "URL: ${env.BUILD_URL}<br/>",
-              to: 'your-email@gmail.com',
+              to: 'siddikiarbaj57@gmail.com',
               attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
     }
 }
 
 }
+
 
 ```
 
